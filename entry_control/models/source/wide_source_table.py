@@ -1,9 +1,7 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from .base import Base
 
-Base = declarative_base()
-
-class WideTable(Base):
+class WideSourceTable(Base):
     __tablename__ = 'lections'
 
     id = Column(Integer, primary_key=True)

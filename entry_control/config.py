@@ -1,14 +1,17 @@
 from sqlalchemy.engine import URL
 
-SQLITE_CONFIG = {
-    'database': 'path/to/source.db'
-}
+from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SQLITE_PATH = getenv('SQLITE_DB_PATH')
 
 POSTGRES_CONFIG = URL.create(
     drivername='postgresql+psycopg2',
-    username='user',
-    password='pass',
-    host='localhost',
-    port=5432,
-    database='target_db'
+    username=getenv('PG_DB_USER'),
+    password=getenv('PG_DB_PASS'),
+    host=getenv('PG_DB_HOST'),
+    port=getenv('PG_DB_PORT'),
+    database=getenv('PG_DB_NAME')
 )
