@@ -7,7 +7,7 @@ def main():
     sqlite_session = create_sqlite_session(SQLITE_PATH)
 
     postgres_session = create_postgres_session(POSTGRES_CONFIG, TargetBase)
-
+    
     normalizer = Normalizer(sqlite_session, postgres_session)
     normalizer.normalize()
 
