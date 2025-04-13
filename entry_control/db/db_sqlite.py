@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from config import SQLITE_PATH
 
-engine = create_engine(f'sqlite:///{SQLITE_PATH}')
+engine = create_engine(f'sqlite:///{SQLITE_PATH}', echo=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
