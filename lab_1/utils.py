@@ -18,3 +18,13 @@ def redirect_to_auth_url():
 
     auth_url = get_url_with_query_params(AUTH_URL, query_params)
     webbrowser.open(auth_url)
+
+def is_protected_endpoint(url):
+    protected_paths = [
+
+    ]
+
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+
+    return any(path.startswith(p) for p in protected_paths)

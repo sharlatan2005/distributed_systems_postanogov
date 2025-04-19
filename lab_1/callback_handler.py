@@ -2,7 +2,7 @@ import requests
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler
 from config import CLIENT_ID, CLIENT_SECRET, CODE_FOR_TOKEN_URL
-
+import json
 
 class CallbackHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -16,11 +16,14 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Auth success! You can close this tab.")
             
             token = self.exchange_code_for_token(code)
-            # Получаем доступ к github_client через server
-            self.server.github_client.auth_token = token
-            self.server.github_client.auth_event.set()  # Оповещаем о получении токена
+             
+            with open("token.json", "w") as f:
+                json.dump(token, f)
+                print(f'Токен: {token}')
+            print("Token saved to token.json!")
         else:
             self.send_error(400, "Code not found")
+
 
     def exchange_code_for_token(self, code):
         response = requests.post(

@@ -1,9 +1,13 @@
 from api_client import GithubAPIClient
+from repo import Repo
+def main():
+    api_client = GithubAPIClient()
 
-if __name__ == "__main__":
-    app = GithubAPIClient()
+    # print(api_client.get_repo('sharlatan2005', 'TodoList'))
 
-    print('Запрашиваем репозиторий и выводим его айди')
-    app.get_repo('sharlatan2005', 'TodoList')
+    repo = Repo('Fifka')
+    print(api_client.update_repo('sharlatan2005', 'TodoList', repo))
 
-    
+
+if __name__ == '__main__':
+    main()
