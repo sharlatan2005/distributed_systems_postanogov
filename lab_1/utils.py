@@ -12,8 +12,8 @@ def get_url_with_query_params(base_url, params):
 def redirect_to_auth_url():
     query_params = {
         'client_id': CLIENT_ID,
-        'redirect_uri': REDIRECT_URL,
-        'prompt': 'consent'
+        'response_type': 'code',
+        'redirect_uri': REDIRECT_URL
     }
 
     auth_url = get_url_with_query_params(AUTH_URL, query_params)

@@ -1,8 +1,10 @@
 import requests
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler
-from config import CLIENT_ID, CLIENT_SECRET, CODE_FOR_TOKEN_URL
+from config import CODE_FOR_TOKEN_URL, BASIC_TOKEN
 import json
+import curlify
+
 
 class CallbackHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -16,7 +18,6 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Auth success! You can close this tab.")
             
             token = self.exchange_code_for_token(code)
-             
             with open("token.json", "w") as f:
                 json.dump(token, f)
                 print(f'Токен: {token}')
@@ -28,11 +29,15 @@ class CallbackHandler(BaseHTTPRequestHandler):
     def exchange_code_for_token(self, code):
         response = requests.post(
             CODE_FOR_TOKEN_URL,
-            params={
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "code": code,
+            headers={
+                'Content-type': 'application/x-www-form-urlencoded',
+                'Authorization': f'Basic {BASIC_TOKEN}' 
             },
-            headers={"Accept": "application/json"},
+            data={
+                "grant_type": "authorization_code",
+                "code": code
+            },
         )
+        print(curlify.to_curl(response.request))
+
         return response.json().get("access_token")
