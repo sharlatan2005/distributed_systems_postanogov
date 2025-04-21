@@ -148,9 +148,6 @@ class Normalizer:
             self.postgres_session.rollback()
             print(f'Error: {e}')
 
-    def normalize(self):
-        self.load_faculties()
-
     def load_lections_attendance(self):
         lections_attendance = self.sqlite_session.query(
           WideSourceTable.id,

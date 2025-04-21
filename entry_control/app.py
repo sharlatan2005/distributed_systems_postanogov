@@ -45,10 +45,7 @@ def count_all_attendance(
             text(f"SELECT {func_name}(:start, :end)"),
             {"start": start_timestamp, "end": end_timestamp}
         ).scalar_one()
-        return {
-            "count": result,
-            "period": f"{start_timestamp} - {end_timestamp}",
-        }
+        return result
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
