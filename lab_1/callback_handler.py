@@ -4,7 +4,7 @@ from http.server import BaseHTTPRequestHandler
 from config import CODE_FOR_TOKEN_URL, BASIC_TOKEN
 import json
 import curlify
-
+from crypto import encrypt_token
 
 class CallbackHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -18,9 +18,8 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Auth success! You can close this tab.")
             
             token = self.exchange_code_for_token(code)
-            with open("token.json", "w") as f:
-                json.dump(token, f)
-                print(f'Токен: {token}')
+            print(f'Токен до расшифровки - {token}')
+            encrypt_token(token)
             print("Token saved to token.json!")
         else:
             self.send_error(400, "Code not found")
