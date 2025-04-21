@@ -4,7 +4,7 @@ from callback_handler import CallbackHandler
 from utils import redirect_to_auth_url
 import curlify
 import os
-from crypto import encrypt_token, decrypt_token
+from crypto import decrypt_token
 
 class GithubAPIClient:
     def __init__(self):
@@ -27,9 +27,11 @@ class GithubAPIClient:
                 self.authenticate()  # Если файла нет, вызываем аутентификацию
                 return self.make_request(method, url, requires_auth, **kwargs)
 
-            headers['Authorization'] = f'OAuth  {auth_token[1:-1]}'
+            headers['Authorization'] = f'OAuth  {auth_token}'
 
         response = requests.request(method, url, headers=headers, **kwargs)
+
+        print(curlify.to_curl(response.request))
 
         if response.status_code == 401:
             print("Token doesn't fit. Re-authenticating...")

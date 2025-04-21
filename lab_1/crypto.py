@@ -2,6 +2,10 @@ from cryptography.fernet import Fernet
 import json
 import os
 
+# key = Fernet.generate_key()
+# with open('secret.key', 'wb') as key_file:
+#     key_file.write(key)
+
 def encrypt_token(token):
     key = open('secret.key', 'rb').read()
     f = Fernet(key)
@@ -15,8 +19,3 @@ def decrypt_token():
     with open('token.json', 'r') as file:
         encrypted_token = json.load(file).encode()
     return f.decrypt(encrypted_token).decode()
-
-# Пример использования
-# key = load_key()
-# encrypt_token("your_access_token_here", key)
-# decrypted_token = decrypt_token(key)
