@@ -1,8 +1,6 @@
 from sqlalchemy import Integer, DateTime, UniqueConstraint
 from sqlalchemy import Column, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from .base import Base
 
 class Lection(Base):
     __tablename__ = 'lections'
