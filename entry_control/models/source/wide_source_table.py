@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String
 from .base import Base
 
 class WideSourceTable(Base):
-    __tablename__ = "lections"
+    __tablename__ = "lections_attendance"
 
     id = Column(Integer, primary_key=True)
     student_id = Column(Integer)
