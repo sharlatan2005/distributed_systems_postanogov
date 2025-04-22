@@ -1,177 +1,89 @@
-from models.source.wide_source_table import WideSourceTable
-
-from models.faculty import Faculty
-from models.group import Group
-from models.student import Student
-from models.subject import Subject
-from models.teacher import Teacher
-from models.lection import Lection
-from models.lections_attendance import LectionsAttendance
+from sqlalchemy.orm import Session
+from models import *
 
 class Normalizer:
-    def __init__(self, sqlite_session, postgres_session):
-        self.sqlite_session = sqlite_session
+    def __init__(self, postgres_session: Session):
         self.postgres_session = postgres_session
+        # Кэш для хранения уже обработанных данных
+        self.cache = {
+            'faculties': set(),
+            'groups': set(),
+            'students': set(),
+            'subjects': set(),
+            'teachers': set()
+        }
 
-    def load_faculties(self):
-        faculties = self.sqlite_session.query(
-          WideSourceTable.faculty_id,
-          WideSourceTable.faculty_name
-        ).group_by(
-            WideSourceTable.faculty_id
-        ).all()
-
-        for faculty in faculties:
-            faculty_record = Faculty(
-                id=faculty.faculty_id,
-                name=faculty.faculty_name
+    def process_message(self, wide_table_row: dict):
+        """Обработка одной строки из широкой таблицы"""
+        # 1. Обрабатываем факультет (если ещё не обработан)
+        if wide_table_row['faculty_id'] not in self.cache['faculties']:
+            faculty = Faculty(
+                id=wide_table_row['faculty_id'],
+                name=wide_table_row['faculty_name']
             )
-            self.postgres_session.add(faculty_record)
+            self.postgres_session.add(faculty)
+            self.cache['faculties'].add(wide_table_row['faculty_id'])
+        
+        # 2. Обрабатываем группу
+        if wide_table_row['group_id'] not in self.cache['groups']:
+            group = Group(
+                id=wide_table_row['group_id'],
+                name=wide_table_row['group_name'],
+                faculty_id=wide_table_row['faculty_id']
+            )
+            self.postgres_session.add(group)
+            self.cache['groups'].add(wide_table_row['group_id'])
+        
+        # 3. Обрабатываем студента
+        if wide_table_row['student_id'] not in self.cache['students']:
+            student = Student(
+                id=wide_table_row['student_id'],
+                full_name=wide_table_row['student_full_name'],
+                group_id=wide_table_row['group_id']
+            )
+            self.postgres_session.add(student)
+            self.cache['students'].add(wide_table_row['student_id'])
+        
+        # 4. Обрабатываем предмет
+        if wide_table_row['subject_id'] not in self.cache['subjects']:
+            subject = Subject(
+                id=wide_table_row['subject_id'],
+                name=wide_table_row['subject_name']
+            )
+            self.postgres_session.add(subject)
+            self.cache['subjects'].add(wide_table_row['subject_id'])
+        
+        # 5. Обрабатываем преподавателя
+        if wide_table_row['teacher_id'] not in self.cache['teachers']:
+            teacher = Teacher(
+                id=wide_table_row['teacher_id'],
+                full_name=wide_table_row['teacher_full_name']
+            )
+            self.postgres_session.add(teacher)
+            self.cache['teachers'].add(wide_table_row['teacher_id'])
+        
+        # 6. Обрабатываем лекцию
+        if wide_table_row['id'] not in self.cache['lections']:
+            lection = Lection(
+                id=wide_table_row['id'],
+                id_teacher=wide_table_row['teacher_id'],
+                id_subject=wide_table_row['subject_id'],
+                start_timestamp=wide_table_row['start_timestamp'],
+                end_timestamp=wide_table_row['end_timestamp']
+            )
+            self.postgres_session.add(lection)
+            self.cache['lections'].add(wide_table_row['id'])
+        
+        # 7. Обрабатываем посещение
+        attendance = LectionsAttendance(
+            id_lection=wide_table_row['id'],
+            id_student=wide_table_row['student_id']
+        )
+        self.postgres_session.add(attendance)
         
         try:
             self.postgres_session.commit()
         except Exception as e:
             self.postgres_session.rollback()
             print(f'Error: {e}')
-
-    def load_groups(self):
-        groups = self.sqlite_session.query(
-          WideSourceTable.group_id,
-          WideSourceTable.group_name,
-          WideSourceTable.faculty_id
-        ).group_by(
-            WideSourceTable.group_id
-        ).all()
-
-        for group in groups:
-            group_record = Group(
-                id=group.group_id,
-                name=group.group_name,
-                faculty_id=group.faculty_id
-                
-            )
-            self.postgres_session.add(group_record)
-        
-        try:
-            self.postgres_session.commit()
-        except Exception as e:
-            self.postgres_session.rollback()
-            print(f'Error: {e}')
-
-    def load_students(self):
-        students = self.sqlite_session.query(
-          WideSourceTable.student_id,
-          WideSourceTable.student_full_name,
-          WideSourceTable.group_id
-        ).group_by(
-            WideSourceTable.student_id
-        ).all()
-
-        for student in students:
-            student_record = Student(
-                id=student.student_id,
-                full_name=student.student_full_name,
-                group_id=student.group_id
-            )
-            self.postgres_session.add(student_record)
-        
-        try:
-            self.postgres_session.commit()
-        except Exception as e:
-            self.postgres_session.rollback()
-            print(f'Error: {e}')
-
-    def load_subjects(self):
-        subjects = self.sqlite_session.query(
-          WideSourceTable.subject_id,
-          WideSourceTable.subject_name
-        ).group_by(
-            WideSourceTable.subject_id
-        ).all()
-
-        for subject in subjects:
-            subject_record = Subject(
-                id=subject.subject_id,
-                name=subject.subject_name
-            )
-            self.postgres_session.add(subject_record)
-        
-        try:
-            self.postgres_session.commit()
-        except Exception as e:
-            self.postgres_session.rollback()
-            print(f'Error: {e}')
-
-    def load_teachers(self):
-        teachers = self.sqlite_session.query(
-          WideSourceTable.teacher_id,
-          WideSourceTable.teacher_full_name
-        ).group_by(
-            WideSourceTable.teacher_id
-        ).all()
-
-        for teacher in teachers:
-            teacher_record = Teacher(
-                id=teacher.teacher_id,
-                full_name=teacher.teacher_full_name
-            )
-            self.postgres_session.add(teacher_record)
-        
-        try:
-            self.postgres_session.commit()
-        except Exception as e:
-            self.postgres_session.rollback()
-            print(f'Error: {e}')
-        
-    def load_lections(self):
-        lections = self.sqlite_session.query(
-          WideSourceTable.id,
-          WideSourceTable.teacher_id,
-          WideSourceTable.subject_id,
-          WideSourceTable.start_timestamp,
-          WideSourceTable.end_timestamp
-        ).all()
-
-        for lection in lections:
-            lection_record = Lection(
-                id=lection.id,
-                id_teacher=lection.teacher_id,
-                id_subject=lection.subject_id,
-                start_timestamp=lection.start_timestamp,
-                end_timestamp=lection.end_timestamp
-            )
-            self.postgres_session.add(lection_record)
-        
-        try:
-            self.postgres_session.commit()
-        except Exception as e:
-            self.postgres_session.rollback()
-            print(f'Error: {e}')
-
-    def load_lections_attendance(self):
-        lections_attendance = self.sqlite_session.query(
-          WideSourceTable.id,
-          WideSourceTable.student_id
-        ).all()
-
-        for attendance_item in lections_attendance:
-            attendance_record = LectionsAttendance(
-                id_lection=attendance_item.id,
-                id_student=attendance_item.student_id,
-            )
-            self.postgres_session.add(attendance_record)
-        
-        try:
-            self.postgres_session.commit()
-        except Exception as e:
-            self.postgres_session.rollback()
-            print(f'Error: {e}')
-
-    def normalize(self):
-        self.load_faculties()
-        self.load_groups()
-        self.load_students()
-        self.load_subjects()
-        self.load_teachers()
-        self.load_lections()
-        self.load_lections_attendance()
+            raise

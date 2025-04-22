@@ -134,7 +134,6 @@ class Normalizer:
 
         for lection in lections:
             lection_record = Lection(
-                id=lection.id,
                 id_teacher=lection.teacher_id,
                 id_subject=lection.subject_id,
                 start_timestamp=lection.start_timestamp,
