@@ -125,7 +125,7 @@ class Normalizer:
         
     def load_lections(self):
         lections = self.sqlite_session.query(
-          WideSourceTable.id,
+          WideSourceTable.lection_id,
           WideSourceTable.teacher_id,
           WideSourceTable.subject_id,
           WideSourceTable.start_timestamp,
@@ -134,6 +134,7 @@ class Normalizer:
 
         for lection in lections:
             lection_record = Lection(
+                id=lection.lection_id,
                 id_teacher=lection.teacher_id,
                 id_subject=lection.subject_id,
                 start_timestamp=lection.start_timestamp,
@@ -150,12 +151,14 @@ class Normalizer:
     def load_lections_attendance(self):
         lections_attendance = self.sqlite_session.query(
           WideSourceTable.id,
+          WideSourceTable.lection_id,
           WideSourceTable.student_id
         ).all()
 
         for attendance_item in lections_attendance:
             attendance_record = LectionsAttendance(
-                id_lection=attendance_item.id,
+                id=attendance_item.id,
+                id_lection=attendance_item.lection_id,
                 id_student=attendance_item.student_id,
             )
             self.postgres_session.add(attendance_record)

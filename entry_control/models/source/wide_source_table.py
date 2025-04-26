@@ -11,6 +11,7 @@ class WideSourceTable(Base):
     faculty_name = Column(String)
     group_id = Column(Integer)
     group_name = Column(String)
+    lection_id = Column(Integer)
     subject_id = Column(Integer)
     subject_name = Column(String)
     teacher_id = Column(Integer)
