@@ -130,6 +130,8 @@ class Normalizer:
           WideSourceTable.subject_id,
           WideSourceTable.start_timestamp,
           WideSourceTable.end_timestamp
+        ).group_by(
+            WideSourceTable.lection_id
         ).all()
 
         for lection in lections:

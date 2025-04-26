@@ -6,3 +6,4 @@ materials/
 token.json
 secret.key
 test/
+entry_control/db/test.db
