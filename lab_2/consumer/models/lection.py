@@ -9,7 +9,7 @@ class Lection(Base):
                         name='uq_lection_teacher_subject_time'),
     )
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     id_teacher = Column(Integer, ForeignKey('teachers.id'), nullable=False)
     id_subject = Column(Integer, ForeignKey('subjects.id'), nullable=False)
     start_timestamp = Column(DateTime, nullable=False)

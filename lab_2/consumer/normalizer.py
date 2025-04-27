@@ -6,7 +6,6 @@ from models import Faculty, Group, Student, Subject, Teacher, Lection, LectionsA
 class Normalizer:
     def __init__(self, postgres_session):
         self.postgres_session = postgres_session
-        self.lection_cache = {}  # Кэш только для лекций, так как у них сложный ключ
 
     def _upsert_faculty(self, faculty_id: int, faculty_name: str):
         stmt = insert(Faculty).values(
@@ -45,30 +44,25 @@ class Normalizer:
         ).on_conflict_do_nothing(index_elements=['id'])
         self.postgres_session.execute(stmt)
 
-    def _upsert_lection(self, teacher_id: int, subject_id: int, 
+    def _upsert_lection(self, id: int, teacher_id: int, subject_id: int, 
                        start_timestamp: datetime, end_timestamp: datetime = None):
-        # Создаем уникальный ключ для кэша
-        cache_key = (teacher_id, subject_id, start_timestamp)
         
-        if cache_key not in self.lection_cache:
-            stmt = insert(Lection).values(
-                id_teacher=teacher_id,
-                id_subject=subject_id,
-                start_timestamp=start_timestamp,
-                end_timestamp=end_timestamp
-            ).returning(Lection.id)
-            
-            result = self.postgres_session.execute(stmt)
-            lection_id = result.scalar_one()
-            self.lection_cache[cache_key] = lection_id
+        stmt = insert(Lection).values(
+            id=id,
+            id_teacher=teacher_id,
+            id_subject=subject_id,
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp
+        ).on_conflict_do_nothing(index_elements=['id'])
         
-        return self.lection_cache[cache_key]
+        self.postgres_session.execute(stmt)
 
-    def _upsert_attendance(self, student_id: int, lection_id: int):
+    def _upsert_attendance(self, id: int, student_id: int, lection_id: int):
         stmt = insert(LectionsAttendance).values(
+            id=id,
             id_student=student_id,
             id_lection=lection_id
-        ).on_conflict_do_nothing(index_elements=['id_student', 'id_lection'])
+        ).on_conflict_do_nothing(index_elements=['id'])
         self.postgres_session.execute(stmt)
 
     def process_message(self, message_data: Dict[str, Any]):
@@ -106,7 +100,8 @@ class Normalizer:
             )
             
             # Обрабатываем лекцию (возвращает ID лекции)
-            lection_id = self._upsert_lection(
+            self._upsert_lection(
+                id=message_data['lection_id'],
                 teacher_id=message_data['teacher_id'],
                 subject_id=message_data['subject_id'],
                 start_timestamp=datetime.fromisoformat(message_data['start_timestamp']),
@@ -115,8 +110,9 @@ class Normalizer:
             
             # Обрабатываем посещение
             self._upsert_attendance(
+                id = message_data['id'],
                 student_id=message_data['student_id'],
-                lection_id=lection_id
+                lection_id=message_data['lection_id']
             )
             
             self.postgres_session.commit()
